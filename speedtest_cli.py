@@ -775,8 +775,8 @@ def speedtest():
             print_('Uploading results to iftt maker... ')
             if args.makeralternative:
                 apiData = [
-                    'value1=%s' % ('%0,2f' % ((dlspeed / 1000 / 1000) * args.units[1])),
-                    'value2=%s' % ('%0,2f' % ((ulspeed / 1000 / 1000) * args.units[1])),
+                    'value1=%s' % ('%0.2f' % ((dlspeed / 1000 / 1000) * args.units[1])).replace('.',','),
+                    'value2=%s' % ('%0.2f' % ((ulspeed / 1000 / 1000) * args.units[1])).replace('.',','),
                     'value3=%s' % ('%(latency)s' % best).replace('.',',')
                 ]
             else:
