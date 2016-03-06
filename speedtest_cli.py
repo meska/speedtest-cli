@@ -33,7 +33,6 @@ source = None
 shutdown_event = None
 scheme = 'http'
 
-
 # Used for bound_interface
 socket_socket = socket.socket
 
@@ -44,6 +43,7 @@ except ImportError:
         import xml.etree.ElementTree as ET
     except ImportError:
         from xml.dom import minidom as DOM
+
         ET = None
 
 # Begin import game to handle Python 2 and Python 3
@@ -593,6 +593,12 @@ def speedtest():
     parser.add_argument('--version', action='store_true',
                         help='Show the version number and exit')
 
+    parser.add_argument('--datadrop', dest='datadrop', help='Send data to wolfram datadrop')
+
+    parser.add_argument('--makerkey', dest='makerkey', help='Send data to iftt Maker (key)')
+    parser.add_argument('--makerresource', dest='makerresource', help='Send data to iftt Maker (resource)')
+
+
     options = parser.parse_args()
     if isinstance(options, tuple):
         args = options[0]
@@ -678,7 +684,7 @@ def speedtest():
                 else:
                     data = f.read().strip()
                     if (f.code == 200 and
-                            len(data.splitlines()) == 1 and
+                                len(data.splitlines()) == 1 and
                             re.match('size=[0-9]', data)):
                         extension = [ext]
                         break
@@ -704,7 +710,7 @@ def speedtest():
 
     if not args.simple:
         print_(('Hosted by %(sponsor)s (%(name)s) [%(d)0.2f km]: '
-               '%(latency)s ms' % best).encode('utf-8', 'ignore'))
+                '%(latency)s ms' % best).encode('utf-8', 'ignore'))
     else:
         print_('Ping: %(latency)s ms' % best)
 
@@ -734,6 +740,61 @@ def speedtest():
         print_()
     print_('Upload: %0.2f M%s/s' %
            ((ulspeed / 1000 / 1000) * args.units[1], args.units[0]))
+
+    if args.datadrop:
+        print_('Uploading results to datadrop... ')
+        apiData = [
+            'bin=%s' % args.datadrop,
+            'download=%s' % ('%0.2f M%s/s' % ((dlspeed / 1000 / 1000) * args.units[1], args.units[0])),
+            'upload=%s' % ('%0.2f M%s/s' % ((ulspeed / 1000 / 1000) * args.units[1], args.units[0])),
+            'ping=%s' % ('%(latency)s ms' % best),
+            'host=%s' % ('%(sponsor)s (%(name)s) [%(d)0.2f km]' % best).encode('utf-8', 'ignore'),
+            'from=%s' % ('%(isp)s (%(ip)s)...' % config['client']),
+        ]
+        request = build_request('https://datadrop.wolframcloud.com/api/v1.0/Add',data='&'.join(apiData).encode())
+        f, e = catch_request(request)
+        if e:
+            print_('Could not submit results to datadrop.wolframcloud.com: %s' % e)
+            sys.exit(1)
+        response = f.read()
+        code = f.code
+        f.close()
+
+        if int(code) != 200:
+            print_('Could not submit results to datadrop.wolframcloud.com')
+            sys.exit(1)
+
+        if 'The data was successfully added' in response.decode():
+            print_('Results added to datadrop')
+        else:
+            print_('Could not submit results to datadrop.wolframcloud.com')
+            print_(response)
+
+        if args.makerkey and args.makerresource:
+            print_('Uploading results to iftt maker... ')
+            apiData = [
+                'value1=%s' % ('%0.2f' % ((dlspeed / 1000 / 1000) * args.units[1])),
+                'value2=%s' % ('%0.2f' % ((ulspeed / 1000 / 1000) * args.units[1])),
+                'value3=%s' % ('%(latency)s' % best),
+            ]
+            request = build_request('https://maker.ifttt.com/trigger/%s/with/key/%s?' % (args.makerresource,args.makerkey),data='&'.join(apiData).encode())
+            f, e = catch_request(request)
+            if e:
+                print_('Could not submit results to iftt maker: %s' % e)
+                sys.exit(1)
+            response = f.read()
+            code = f.code
+            f.close()
+
+            if int(code) != 200:
+                print_('Could not submit results to iftt maker')
+                sys.exit(1)
+
+            if 'Congratulations' in response.decode():
+                print_('Results added to iftt maker')
+            else:
+                print_('Could not submit results to iftt maker')
+                print_(response)
 
     if args.share and args.mini:
         print_('Cannot generate a speedtest.net share results image while '
