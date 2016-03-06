@@ -99,6 +99,10 @@ Usage
                          speedtest.net operated servers
       --version          Show the version number and exit
 
+      --datadrop         Datadrop id for upload results on datadrop.wolframcloud.com
+      --makerkey         Key for upload results to iftt Maker
+      --makerresource    Resource id for upload results to iftt Maker
+
 Inconsistency
 -------------
 
