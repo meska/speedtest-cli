@@ -597,7 +597,7 @@ def speedtest():
 
     parser.add_argument('--makerkey', dest='makerkey', help='Send data to iftt Maker (key)')
     parser.add_argument('--makerresource', dest='makerresource', help='Send data to iftt Maker (resource)')
-    parser.add_argument('--makeralternative', dest='store_true', help='Send data to iftt Maker (Alternative format)')
+    parser.add_argument('--makeralternative', action='store_true', help='Send data to iftt Maker (Alternative format)')
 
 
     options = parser.parse_args()
