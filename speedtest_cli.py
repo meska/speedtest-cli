@@ -597,6 +597,7 @@ def speedtest():
 
     parser.add_argument('--makerkey', dest='makerkey', help='Send data to iftt Maker (key)')
     parser.add_argument('--makerresource', dest='makerresource', help='Send data to iftt Maker (resource)')
+    parser.add_argument('--makeralternative', dest='store_true', help='Send data to iftt Maker (Alternative format)')
 
 
     options = parser.parse_args()
@@ -772,11 +773,18 @@ def speedtest():
 
         if args.makerkey and args.makerresource:
             print_('Uploading results to iftt maker... ')
-            apiData = [
-                'value1=%s' % ('%0.2f' % ((dlspeed / 1000 / 1000) * args.units[1])),
-                'value2=%s' % ('%0.2f' % ((ulspeed / 1000 / 1000) * args.units[1])),
-                'value3=%s' % ('%(latency)s' % best),
-            ]
+            if args.makeralternative:
+                apiData = [
+                    'value1=%s' % ('%0,2f' % ((dlspeed / 1000 / 1000) * args.units[1])),
+                    'value2=%s' % ('%0,2f' % ((ulspeed / 1000 / 1000) * args.units[1])),
+                    'value3=%s' % ('%(latency)s' % best).replace('.',',')
+                ]
+            else:
+                apiData = [
+                    'value1=%s' % ('%0.2f' % ((dlspeed / 1000 / 1000) * args.units[1])),
+                    'value2=%s' % ('%0.2f' % ((ulspeed / 1000 / 1000) * args.units[1])),
+                    'value3=%s' % ('%(latency)s' % best),
+                ]
             request = build_request('https://maker.ifttt.com/trigger/%s/with/key/%s?' % (args.makerresource,args.makerkey),data='&'.join(apiData).encode())
             f, e = catch_request(request)
             if e:
