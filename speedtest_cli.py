@@ -746,9 +746,9 @@ def speedtest():
         print_('Uploading results to datadrop... ')
         apiData = [
             'bin=%s' % args.datadrop,
-            'download=%s' % ('%0.2f Mb/s' % ((dlspeed / 1000 / 1000) * args.units[1])),
-            'upload=%s' % ('%0.2f Mb/s' % ((ulspeed / 1000 / 1000) * args.units[1])),
-            'ping=%s' % ('%(latency)s ms' % best),
+            'download_speed=%s' % ('%0.2fMb/s' % ((dlspeed / 1000 / 1000) * args.units[1])),
+            'upload_speed=%s' % ('%0.2fMb/s' % ((ulspeed / 1000 / 1000) * args.units[1])),
+            'ping=%s' % ('%(latency)sms' % best),
             'host=%s' % ('%(sponsor)s (%(name)s) [%(d)0.2f km]' % best).encode('utf-8', 'ignore'),
             'from=%s' % ('%(isp)s (%(ip)s)...' % config['client']),
         ]
